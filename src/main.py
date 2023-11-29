@@ -80,7 +80,7 @@ def get_llm_service():
 def generate_project(params: ProjectParams, service: TemplateLLM = Depends(get_llm_service)) -> ProjectIdeas:
     return service.generate(params)
 
-@app.post("/faces", responses={
+@app.post("/detect", responses={
     200: {"content": {"image/jpeg": {}}}
 })
 def detect_faces(
@@ -88,24 +88,19 @@ def detect_faces(
     predictor: FaceDetector = Depends(get_face_detector)
 ) -> Response:
     results, img = predict_uploadfile(predictor, file)
-    for result in results:
+    for idx, result in enumerate(results):
         bbox = result['bbox']
-        keypoints = result['keypoints']
         img = cv2.rectangle(img, (int(bbox[0]), int(bbox[1])), 
                             (int(bbox[0] + bbox[2]), int(bbox[1] + bbox[3])),
-                            (0, 255, 0), 2)
-        for i in range(2):  
-            x = int(keypoints[i][0] * img.shape[1])  
-            y = int(keypoints[i][1] * img.shape[0])  
-            img = cv2.circle(img, (x, y), 5, (0, 255, 0), 2)
-        if len(keypoints) >= 3:  
-            x = int(keypoints[2][0] * img.shape[1]) 
-            y = int(keypoints[2][1] * img.shape[0]) 
-            img = cv2.circle(img, (x, y), 5, (0, 255, 0), 2)
-        if len(keypoints) >= 4:  
-            x = int(keypoints[3][0] * img.shape[1])  
-            y = int(keypoints[3][1] * img.shape[0])  
-            img = cv2.circle(img, (x, y), 5, (0, 255, 0), 2)
+                            (0, 0, 255), 2)  
+
+
+        center_x = int(bbox[0] + bbox[2] / 2)
+        center_y = int(bbox[1] + bbox[3] / 2)
+
+        cv2.putText(img, "Persona", (center_x - 30, int(bbox[1] + bbox[3]) + 20),
+                    cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 2)
+
     img_pil = Image.fromarray(img)
     image_stream = io.BytesIO()
     img_pil.save(image_stream, format="JPEG")
