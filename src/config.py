@@ -9,7 +9,7 @@ class GPTModel(str, Enum):
 
 
 class Settings(BaseSettings):
-    service_name: str = "Increible Proyecto"
+    service_name: str = "Asombroso Proyecto"
     k_revision: str = "Local"
     log_level: str = "DEBUG"
     openai_key: str
